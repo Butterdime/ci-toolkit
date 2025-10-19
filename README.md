@@ -89,6 +89,29 @@ Intelligent Node.js dependency setup with caching:
   uses: YOUR_ORG/ci-toolkit/.github/actions/setup-node-deps@v1.0.0
 ```
 
+### Project Setup Script: `ensure-project-setup.sh`
+
+**Location**: `scripts/ensure-project-setup.sh`
+
+Automated Next.js project configuration and dependency management:
+- 📦 **Dependency Verification**: Ensures Next.js, React, and React-DOM are installed
+- 🔒 **Lock File Management**: Creates appropriate lock files for reproducible builds
+- 🎯 **Smart Package Manager Detection**: Uses npm or Yarn based on existing lock files
+- 🚀 **Git Integration**: Automatically commits and pushes changes
+- ✅ **Validation**: Comprehensive project health checks
+
+**Usage**:
+```bash
+# Ensure Next.js project is properly configured
+./scripts/ensure-project-setup.sh
+
+# The script will:
+# 1. Verify package.json exists
+# 2. Install missing Next.js dependencies
+# 3. Create lock files for CI reliability
+# 4. Commit and push changes automatically
+```
+
 ### Rollout Script: `rollout-deps.sh`
 
 **Location**: `scripts/rollout-deps.sh`
@@ -268,6 +291,16 @@ python3 monitor_adoption.py your-username
 ./scripts/rollout-deps.sh false acme-corp
 ./scripts/setup-vercel.sh acme-corp next-app acme-corp next-production
 python3 monitor_adoption.py acme-corp
+```
+
+### Example 4: New Project Setup
+```bash
+# Set up a new Next.js project with proper CI/CD configuration
+cd my-nextjs-project
+/path/to/ci-toolkit/scripts/ensure-project-setup.sh
+
+# Result: Project configured with Next.js deps and lock file
+# Ready for standardized CI workflows
 ```
 
 ### Example 4: Scheduled Monitoring
