@@ -180,12 +180,18 @@ Link GitHub repositories to Vercel for automated previews and production deploym
 export VERCEL_TOKEN=<your_vercel_token>
 export GITHUB_TOKEN=<your_github_token>
 
-# Link GitHub repo to Vercel for automated deployments
+# Link GitHub repo to Vercel with complete integration
 ./scripts/setup-vercel.sh <GITHUB_ORG> <REPO_NAME> <VERCEL_ORG> <VERCEL_PROJECT_ALIAS>
 
 # Example: Connect automation-workflow-dashboard to Vercel
 ./scripts/setup-vercel.sh Butterdime automation-workflow-dashboard Butterdime vercel-automation
 ```
+
+**Enhanced Features:**
+- 🔐 **Secret Synchronization**: Automatically syncs GitHub secrets to Vercel environment
+- 🎯 **Smart Integration**: Detects and configures common secrets (API_KEY, DATABASE_URL, etc.)
+- ⚡ **One-Command Setup**: Complete GitHub → Vercel pipeline in a single script
+- 🛡️ **Error Handling**: Graceful handling of missing secrets and configuration issues
 
 **What this enables:**
 - ✅ **Automated Production Deployments**: Every push to `main` branch
