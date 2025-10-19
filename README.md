@@ -276,7 +276,63 @@ python3 monitor_adoption.py acme-corp
 0 9 * * * cd /path/to/ci-toolkit && python3 monitor_adoption.py acme-corp
 ```
 
-## � Live Dashboard Setup
+## 🤖 Copilot Log Monitoring
+
+### AI Development Analytics
+
+Monitor GitHub Copilot usage, performance, and errors across your development workflow:
+
+**File**: `scripts/monitor_copilot_logs.sh`
+
+```bash
+# Monitor Copilot logs for errors and performance metrics
+./scripts/monitor_copilot_logs.sh
+```
+
+**Features:**
+- 📊 **Usage Analytics** - Track completions, acceptance rates, and patterns
+- ⚠️ **Error Detection** - Identify API timeouts, failures, and warnings  
+- 📈 **Performance Insights** - Monitor suggestion quality and acceptance rates
+- 🎯 **Health Status** - Overall Copilot integration health assessment
+
+### Setup Copilot Monitoring
+
+1. **Place log files** in `logs/copilot/` directory:
+   ```bash
+   mkdir -p logs/copilot
+   # Copy your Copilot log files here
+   ```
+
+2. **Run manual analysis**:
+   ```bash
+   ./scripts/monitor_copilot_logs.sh
+   cat copilot_log_summary.txt
+   ```
+
+3. **Automated monitoring** runs daily at 07:00 UTC via GitHub Actions
+
+### Sample Report Output
+
+```markdown
+# Copilot Log Monitoring Report
+Generated: 2025-10-19 02:36 UTC
+
+## Summary Statistics
+- Total log entries: 23
+- Completions generated: 12
+- Suggestions accepted: 9  
+- Acceptance rate: 75%
+
+## Health Status
+🚀 **Excellent** - High acceptance rate (75%)
+
+## Performance Insights
+- High developer productivity
+- Quality AI suggestions
+- Minimal error rate
+```
+
+## 📊 Live Dashboard Setup
 
 ### Complete Monitoring Workflow
 

@@ -1,0 +1,12 @@
+[2025-10-19 08:30:12] INFO: Copilot session started
+[2025-10-19 08:30:15] INFO: Completion generated for file: src/components/Header.tsx
+[2025-10-19 08:30:16] INFO: Suggestion accepted by user
+[2025-10-19 08:31:05] INFO: Completion generated for file: src/utils/api.ts
+[2025-10-19 08:31:07] INFO: Suggestion accepted by user
+[2025-10-19 08:32:22] INFO: Completion generated for file: tests/integration.test.js
+[2025-10-19 08:32:25] WARN: Suggestion rejected - low confidence score
+[2025-10-19 08:33:10] INFO: Completion generated for file: README.md
+[2025-10-19 08:33:11] INFO: Suggestion accepted by user
+[2025-10-19 08:34:45] ERROR: Failed to generate completion - API timeout
+[2025-10-19 08:34:50] INFO: Retry successful - completion generated
+[2025-10-19 08:35:30] INFO: Copilot session ended - 4 completions, 3 accepted

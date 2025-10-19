@@ -1,0 +1,45 @@
+name: Monitor Copilot Logs
+
+on:
+  schedule:
+    - cron: '0 7 * * *'   # Daily at 07:00 UTC
+  workflow_dispatch:       # Manual trigger
+
+jobs:
+  scan-copilot-logs:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+      actions: write       # Required for artifact upload
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Run Copilot log monitor
+        run: scripts/monitor_copilot_logs.sh
+        
+      - name: Display summary
+        run: |
+          echo "## Copilot Log Summary"
+          cat copilot_log_summary.txt
+          
+      - name: Upload summary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-log-summary-$(date +%Y%m%d)
+          path: copilot_log_summary.txt
+          retention-days: 30
+          
+      - name: Check for critical errors
+        run: |
+          ERROR_COUNT=$(grep -E "ERROR|Exception|Traceback|FATAL" logs/copilot/*.log 2>/dev/null | wc -l || echo 0)
+          if [ "$ERROR_COUNT" -gt 10 ]; then
+            echo "⚠️ Critical: $ERROR_COUNT errors found in Copilot logs"
+            echo "::warning::High error count detected in Copilot logs: $ERROR_COUNT errors"
+          elif [ "$ERROR_COUNT" -gt 0 ]; then
+            echo "ℹ️ Notice: $ERROR_COUNT errors found in Copilot logs"
+          else
+            echo "✅ No errors found in Copilot logs"
+          fi
