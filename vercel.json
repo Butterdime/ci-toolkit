@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "approval-dashboard-api",
+  "builds": [
+    {
+      "src": "api/approval-server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/approval-server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "api/approval-server.js": {
+      "maxDuration": 30
+    }
+  }
+}

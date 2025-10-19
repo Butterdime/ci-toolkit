@@ -57,14 +57,15 @@ else
     info "No lock file detected, defaulting to npm"
 fi
 
-# Step 2: Check for required Next.js dependencies
+# Step 2: Check for required Next.js dependencies in dependencies and devDependencies
 REQUIRED_DEPS=("next" "react" "react-dom")
 MISSING_DEPS=()
 
 info "Checking for required Next.js dependencies..."
 
 for dep in "${REQUIRED_DEPS[@]}"; do
-    if ! grep -q "\"$dep\"" package.json; then
+    # Check both dependencies and devDependencies sections
+    if ! grep -E "\"dependencies\"|\"devDependencies\"" package.json | grep -A 50 -E "\"dependencies\"|\"devDependencies\"" | grep -q "\"$dep\""; then
         MISSING_DEPS+=("$dep")
         warning "Missing dependency: $dep"
     else
@@ -89,27 +90,39 @@ else
     success "All required Next.js dependencies are present"
 fi
 
-# Step 3: Ensure lock file is present
+# Step 3: Generate lock file and verify it exists
 LOCK_FILE_CREATED=false
 
 if [ "$USE_YARN" = true ]; then
+    info "Running yarn install to generate/update yarn.lock..."
+    yarn install
+    
+    # Verify yarn.lock now exists
     if [ ! -f "yarn.lock" ]; then
-        info "Creating yarn.lock file..."
-        yarn install
-        LOCK_FILE_CREATED=true
-        success "yarn.lock created"
-    else
-        success "yarn.lock already exists"
+        error "Failed to generate yarn.lock file after running 'yarn install'"
     fi
+    
+    if [ ! -s "yarn.lock" ]; then
+        error "yarn.lock file is empty - installation may have failed"
+    fi
+    
+    LOCK_FILE_CREATED=true
+    success "yarn.lock verified and up to date"
 else
+    info "Running npm install to generate/update package-lock.json..."
+    npm install
+    
+    # Verify package-lock.json now exists
     if [ ! -f "package-lock.json" ]; then
-        info "Creating package-lock.json file..."
-        npm install
-        LOCK_FILE_CREATED=true
-        success "package-lock.json created"
-    else
-        success "package-lock.json already exists"
+        error "Failed to generate package-lock.json file after running 'npm install'"
     fi
+    
+    if [ ! -s "package-lock.json" ]; then
+        error "package-lock.json file is empty - installation may have failed"
+    fi
+    
+    LOCK_FILE_CREATED=true
+    success "package-lock.json verified and up to date"
 fi
 
 # Step 4: Commit changes if any were made
@@ -120,17 +133,13 @@ if [ ${#MISSING_DEPS[@]} -gt 0 ] || [ "$LOCK_FILE_CREATED" = true ]; then
     if ! git rev-parse --git-dir > /dev/null 2>&1; then
         warning "Not in a git repository. Skipping commit step."
     else
-        # Add relevant files
-        FILES_TO_ADD=("package.json")
+        # Add all relevant files (package.json and lock files)
+        info "Adding package.json and lock files to git..."
+        git add package.json
         
-        if [ "$USE_YARN" = true ] && [ -f "yarn.lock" ]; then
-            FILES_TO_ADD+=("yarn.lock")
-        elif [ -f "package-lock.json" ]; then
-            FILES_TO_ADD+=("package-lock.json")
-        fi
-        
-        info "Adding files to git: ${FILES_TO_ADD[*]}"
-        git add "${FILES_TO_ADD[@]}"
+        # Add lock files if they exist
+        [ -f "package-lock.json" ] && git add package-lock.json
+        [ -f "yarn.lock" ] && git add yarn.lock
         
         # Check if there are changes to commit
         if git diff --staged --quiet; then

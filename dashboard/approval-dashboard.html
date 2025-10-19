@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CI/CD Approval Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            color: #2d3748;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .org-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .org-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .org-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .org-name {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-ready {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-pending {
+            background: #fef5e7;
+            color: #c05621;
+        }
+
+        .status-issues {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-progress {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .readiness-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            background: #f7fafc;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #718096;
+            margin-top: 4px;
+        }
+
+        .repos-list {
+            margin: 20px 0;
+        }
+
+        .repo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .repo-item.ready {
+            border-left-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .repo-item.issues {
+            border-left-color: #f56565;
+            background: #fffbf5;
+        }
+
+        .repo-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .repo-issues {
+            font-size: 0.85rem;
+            color: #e53e3e;
+            margin-left: 10px;
+        }
+
+        .approval-section {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 12px;
+            border: 2px dashed #e2e8f0;
+        }
+
+        .approval-ready {
+            border-color: #48bb78;
+            background: #f0fff4;
+        }
+
+        .approval-button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 15px;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #48bb78;
+        }
+
+        .notification.error {
+            background: #f56565;
+        }
+
+        .footer {
+            background: rgba(45, 55, 72, 0.95);
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 60px;
+        }
+
+        .logs-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .logs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .log-entry {
+            padding: 10px;
+            margin: 8px 0;
+            border-left: 4px solid #e2e8f0;
+            background: #f7fafc;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .log-info {
+            border-left-color: #4299e1;
+        }
+
+        .log-success {
+            border-left-color: #48bb78;
+        }
+
+        .log-error {
+            border-left-color: #f56565;
+        }
+
+        @media (max-width: 768px) {
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .readiness-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🚀 CI/CD Approval Dashboard</h1>
+            <p class="subtitle">Enterprise-grade approval workflow for automated CI/CD rollouts</p>
+            
+            <div class="controls">
+                <button class="btn btn-primary" onclick="refreshAllData()">
+                    🔄 Refresh Status
+                </button>
+                <button class="btn btn-warning" onclick="showLogs()">
+                    📋 View Logs
+                </button>
+                <input type="text" id="orgFilter" placeholder="Filter organizations..." 
+                       style="padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; width: 200px;">
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="container">
+            <div id="statusGrid" class="status-grid">
+                <!-- Organization cards will be inserted here -->
+            </div>
+
+            <div class="logs-section" id="logsSection" style="display: none;">
+                <div class="logs-header">
+                    <h3>📋 Approval Activity Logs</h3>
+                    <button class="btn btn-primary" onclick="hideLogs()">Hide Logs</button>
+                </div>
+                <div id="logsContainer">
+                    <!-- Logs will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2024 CI/CD Approval Dashboard | Last updated: <span id="lastUpdated">Never</span></p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = 'https://your-approval-api.vercel.app/api';
+        const ORGANIZATIONS = ['Butterdime', 'ExampleOrg']; // Add your target organizations
+        let approvalLogs = [];
+        let organizationData = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            loadAllOrganizations();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadAllOrganizations, 30000);
+        });
+
+        function setupEventListeners() {
+            // Organization filter
+            document.getElementById('orgFilter').addEventListener('input', function(e) {
+                filterOrganizations(e.target.value);
+            });
+        }
+
+        async function loadAllOrganizations() {
+            showNotification('Refreshing organization status...', 'info');
+            
+            for (const org of ORGANIZATIONS) {
+                try {
+                    await loadOrganizationData(org);
+                } catch (error) {
+                    console.error(`Error loading data for ${org}:`, error);
+                    addLog(`Error loading ${org}: ${error.message}`, 'error');
+                }
+            }
+            
+            renderOrganizations();
+            updateLastUpdated();
+            showNotification('Status updated successfully!', 'success');
+        }
+
+        async function loadOrganizationData(org) {
+            try {
+                // Load readiness status
+                const readinessResponse = await fetch(`${API_BASE_URL}/readiness/${org}`);
+                const readinessData = await readinessResponse.json();
+                
+                // Load rollout status
+                const statusResponse = await fetch(`${API_BASE_URL}/status/${org}`);
+                const statusData = await statusResponse.json();
+                
+                organizationData[org] = {
+                    readiness: readinessData.success ? readinessData.data : null,
+                    rolloutStatus: statusData.success ? statusData.data : null,
+                    lastChecked: new Date().toISOString()
+                };
+                
+            } catch (error) {
+                organizationData[org] = {
+                    readiness: null,
+                    rolloutStatus: null,
+                    error: error.message,
+                    lastChecked: new Date().toISOString()
+                };
+                throw error;
+            }
+        }
+
+        function renderOrganizations() {
+            const grid = document.getElementById('statusGrid');
+            grid.innerHTML = '';
+            
+            Object.entries(organizationData).forEach(([org, data]) => {
+                const card = createOrganizationCard(org, data);
+                grid.appendChild(card);
+            });
+        }
+
+        function createOrganizationCard(org, data) {
+            const card = document.createElement('div');
+            card.className = 'org-card';
+            card.setAttribute('data-org', org);
+
+            if (data.error) {
+                card.innerHTML = createErrorCard(org, data.error);
+                return card;
+            }
+
+            const readiness = data.readiness;
+            const rolloutStatus = data.rolloutStatus;
+            
+            const status = getOrganizationStatus(readiness, rolloutStatus);
+            const isApprovalReady = readiness && readiness.allReady && !rolloutStatus?.hasActiveRollout;
+
+            card.innerHTML = `
+                <div class="org-header">
+                    <div class="org-name">${org}</div>
+                    <div class="status-badge status-${status.class}">${status.text}</div>
+                </div>
+
+                <div class="readiness-summary">
+                    <div class="metric">
+                        <div class="metric-value">${readiness ? readiness.ready : '?'}</div>
+                        <div class="metric-label">Ready Repos</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">${readiness ? readiness.total : '?'}</div>
+                        <div class="metric-label">Total Repos</div>
+                    </div>
+                </div>
+
+                ${readiness ? createReposList(readiness) : '<p>Unable to load repository data</p>'}
+
+                <div class="approval-section ${isApprovalReady ? 'approval-ready' : ''}">
+                    ${createApprovalSection(org, readiness, rolloutStatus, isApprovalReady)}
+                </div>
+            `;
+
+            return card;
+        }
+
+        function createErrorCard(org, error) {
+            return `
+                <div class="org-header">
+                    <div class="org-name">${org}</div>
+                    <div class="status-badge status-issues">Error</div>
+                </div>
+                <p style="color: #e53e3e; text-align: center; padding: 20px;">
+                    ❌ Failed to load organization data: ${error}
+                </p>
+            `;
+        }
+
+        function getOrganizationStatus(readiness, rolloutStatus) {
+            if (rolloutStatus && rolloutStatus.hasActiveRollout) {
+                return { class: 'progress', text: 'Rollout Active' };
+            }
+            
+            if (!readiness) {
+                return { class: 'issues', text: 'Data Error' };
+            }
+
+            if (readiness.allReady) {
+                return { class: 'ready', text: 'Ready for Approval' };
+            } else if (readiness.ready > 0) {
+                return { class: 'pending', text: 'Partially Ready' };
+            } else {
+                return { class: 'issues', text: 'Issues Found' };
+            }
+        }
+
+        function createReposList(readiness) {
+            if (!readiness.readyRepos && !readiness.issues) {
+                return '<p>No repositories found</p>';
+            }
+
+            let html = '<div class="repos-list">';
+            
+            // Ready repositories
+            if (readiness.readyRepos && readiness.readyRepos.length > 0) {
+                readiness.readyRepos.forEach(repo => {
+                    html += `
+                        <div class="repo-item ready">
+                            <span class="repo-name">✅ ${repo}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Repositories with issues
+            if (readiness.issues && readiness.issues.length > 0) {
+                readiness.issues.forEach(item => {
+                    html += `
+                        <div class="repo-item issues">
+                            <span class="repo-name">❌ ${item.repo}</span>
+                            <span class="repo-issues">${item.issues.join(', ')}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        function createApprovalSection(org, readiness, rolloutStatus, isApprovalReady) {
+            if (rolloutStatus && rolloutStatus.hasActiveRollout) {
+                return `
+                    <h4>🔄 Rollout in Progress</h4>
+                    <p>A rollout is currently active for this organization.</p>
+                    <a href="${rolloutStatus.latestRollout.html_url}" target="_blank" class="btn btn-primary approval-button">
+                        View Active Rollout
+                    </a>
+                `;
+            }
+
+            if (!readiness) {
+                return `
+                    <h4>❌ Cannot Load Status</h4>
+                    <p>Unable to determine readiness status for this organization.</p>
+                `;
+            }
+
+            if (isApprovalReady) {
+                return `
+                    <h4>✅ Ready for Approval</h4>
+                    <p>All prerequisites are met. You can now approve and execute the rollout.</p>
+                    <button class="btn btn-success approval-button" onclick="approveRollout('${org}')">
+                        🚀 Approve & Execute Rollout
+                    </button>
+                `;
+            } else {
+                const readyCount = readiness.ready || 0;
+                const totalCount = readiness.total || 0;
+                
+                return `
+                    <h4>⏳ Prerequisites Not Met</h4>
+                    <p>Only ${readyCount}/${totalCount} repositories are ready. Address the issues above before approval.</p>
+                    <button class="btn btn-warning approval-button" disabled>
+                        ⏳ Waiting for Prerequisites
+                    </button>
+                `;
+            }
+        }
+
+        async function approveRollout(org) {
+            const orgData = organizationData[org];
+            if (!orgData || !orgData.readiness || !orgData.readiness.allReady) {
+                showNotification('Organization not ready for rollout', 'error');
+                return;
+            }
+
+            const approvedBy = prompt('Enter your name/ID for approval audit trail:');
+            if (!approvedBy) {
+                showNotification('Approval cancelled - approver required', 'error');
+                return;
+            }
+
+            try {
+                // Update UI to show progress
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '<div class="loading"></div> Executing Rollout...';
+                button.disabled = true;
+
+                const response = await fetch(`${API_BASE_URL}/approve/${org}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        repos: orgData.readiness.readyRepos,
+                        rolloutType: 'full',
+                        approvedBy: approvedBy
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    addLog(`✅ Rollout approved for ${org} by ${approvedBy}`, 'success');
+                    showNotification(`Rollout approved and dispatched for ${org}!`, 'success');
+                    
+                    // Refresh data after a short delay
+                    setTimeout(() => {
+                        loadOrganizationData(org).then(() => renderOrganizations());
+                    }, 2000);
+                } else {
+                    throw new Error(result.error || 'Approval failed');
+                }
+
+            } catch (error) {
+                console.error('Approval error:', error);
+                addLog(`❌ Rollout approval failed for ${org}: ${error.message}`, 'error');
+                showNotification(`Approval failed: ${error.message}`, 'error');
+                
+                // Restore button
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function refreshAllData() {
+            loadAllOrganizations();
+        }
+
+        function filterOrganizations(query) {
+            const cards = document.querySelectorAll('.org-card');
+            cards.forEach(card => {
+                const orgName = card.getAttribute('data-org');
+                if (orgName.toLowerCase().includes(query.toLowerCase())) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function showLogs() {
+            document.getElementById('logsSection').style.display = 'block';
+            renderLogs();
+        }
+
+        function hideLogs() {
+            document.getElementById('logsSection').style.display = 'none';
+        }
+
+        function addLog(message, type = 'info') {
+            const log = {
+                timestamp: new Date().toISOString(),
+                message: message,
+                type: type
+            };
+            
+            approvalLogs.unshift(log);
+            
+            // Keep only last 50 logs
+            if (approvalLogs.length > 50) {
+                approvalLogs = approvalLogs.slice(0, 50);
+            }
+        }
+
+        function renderLogs() {
+            const container = document.getElementById('logsContainer');
+            
+            if (approvalLogs.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096;">No logs available</p>';
+                return;
+            }
+            
+            container.innerHTML = approvalLogs.map(log => `
+                <div class="log-entry log-${log.type}">
+                    <strong>${new Date(log.timestamp).toLocaleString()}</strong> - ${log.message}
+                </div>
+            `).join('');
+        }
+
+        function showNotification(message, type) {
+            // Remove existing notification
+            const existing = document.querySelector('.notification');
+            if (existing) {
+                existing.remove();
+            }
+            
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Show notification
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Hide notification after 4 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+
+        function updateLastUpdated() {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+        }
+
+        // Initialize logs
+        addLog('Dashboard initialized', 'info');
+    </script>
+</body>
+</html>
