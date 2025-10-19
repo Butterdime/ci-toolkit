@@ -304,41 +304,46 @@ git push origin gh-pages
 
 ### Automated Dashboard Updates
 
-Add to GitHub Actions for automatic dashboard updates:
+The toolkit includes automated daily monitoring via GitHub Actions:
+
+**File**: `.github/workflows/monitor.yml`
 
 ```yaml
-# .github/workflows/monitor.yml
-name: Update Adoption Dashboard
+name: Monitor CI Adoption
+
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Weekly Monday 9 AM
-  workflow_dispatch:     # Manual trigger
+    - cron: '0 8 * * *'  # Daily at 08:00 UTC
+  workflow_dispatch:      # Manual trigger
 
 jobs:
-  update-dashboard:
+  monitor-adoption:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: '3.x'
-      - name: Install dependencies
-        run: pip install requests
-      - name: Generate dashboard
+      - run: pip install requests
+      - name: Run adoption monitoring
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: python3 monitor_adoption.py ${{ github.repository_owner }}
-      - name: Commit dashboard
+        run: python monitor_adoption.py ${{ github.repository_owner }}
+      - name: Commit updated dashboard
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.name "github-actions[bot]"
           git add adoption_dashboard.html
-          git commit -m "docs: update adoption dashboard $(date)" || exit 0
+          git commit -m "chore: update adoption dashboard $(date -u)" || exit 0
           git push
 ```
+
+**Features:**
+- 🕐 **Daily Updates** - Runs every day at 8:00 AM UTC
+- 🔄 **Manual Triggers** - Run on-demand via GitHub Actions UI
+- 🤖 **Automated Commits** - Updates dashboard file automatically
+- 📊 **Fresh Data** - Always shows current adoption status
 
 ### Dashboard Features
 

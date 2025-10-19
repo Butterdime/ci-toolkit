@@ -1,0 +1,56 @@
+# copilot:
+# Generate a GitHub Actions workflow file at .github/workflows/monitor.yml that:
+# 1. Runs daily at 08:00 UTC and on workflow_dispatch.
+# 2. Checks out the repo.
+# 3. Sets up Python 3.x.
+# 4. Installs the 'requests' library.
+# 5. Runs `python monitor_adoption.py my-org` with GITHUB_TOKEN from secrets.
+# 6. Commits and pushes the updated adoption_dashboard.html back to the repo.
+# 7. Configures git user to "github-actions[bot]".
+
+name: Monitor CI Adoption
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # Daily at 08:00 UTC
+  workflow_dispatch:      # Allow manual triggering
+
+jobs:
+  monitor-adoption:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write      # Required to push changes back to repo
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Set up Python 3.x
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+          
+      - name: Install requests library
+        run: pip install requests
+        
+      - name: Run adoption monitoring
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python monitor_adoption.py ${{ github.repository_owner }}
+        
+      - name: Configure Git user
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+      - name: Commit and push updated dashboard
+        run: |
+          git add adoption_dashboard.html
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update adoption dashboard $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+            echo "✅ Dashboard updated successfully"
+          fi
