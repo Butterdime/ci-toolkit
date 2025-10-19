@@ -169,7 +169,49 @@ Enhance `monitor_adoption.py` to track:
 - Security scan results
 - Code quality metrics
 
-## 📚 Usage Examples
+## � GitHub & Vercel Integration
+
+### Automated Deployment Pipeline Setup
+
+Link GitHub repositories to Vercel for automated previews and production deployments:
+
+```bash
+# Export required tokens
+export VERCEL_TOKEN=<your_vercel_token>
+export GITHUB_TOKEN=<your_github_token>
+
+# Link GitHub repo to Vercel for automated deployments
+./scripts/setup-vercel.sh <GITHUB_ORG> <REPO_NAME> <VERCEL_ORG> <VERCEL_PROJECT_ALIAS>
+
+# Example: Connect automation-workflow-dashboard to Vercel
+./scripts/setup-vercel.sh Butterdime automation-workflow-dashboard Butterdime vercel-automation
+```
+
+**What this enables:**
+- ✅ **Automated Production Deployments**: Every push to `main` branch
+- 🔍 **Preview Deployments**: Every pull request gets its own preview URL
+- 📊 **Deployment Dashboard**: Monitor all deployments in Vercel dashboard
+- 🔄 **Git Integration**: Seamless GitHub → Vercel workflow
+
+### Complete CI/CD Pipeline
+
+Combine standardized dependencies + automated deployments:
+
+```bash
+# 1. Standardize CI across repositories
+./scripts/rollout-deps.sh false your-org
+
+# 2. Set up Vercel integration for each repo
+echo "repo1\nrepo2\nrepo3" > repos.txt
+while read repo; do
+  ./scripts/setup-vercel.sh your-org "$repo" your-vercel-org "$repo"
+done < repos.txt
+
+# 3. Monitor overall adoption
+python3 monitor_adoption.py your-org
+```
+
+## �📚 Usage Examples
 
 ### Example 1: Organization Rollout
 ```bash
@@ -193,7 +235,15 @@ python3 monitor_adoption.py acme-corp
 python3 monitor_adoption.py your-username
 ```
 
-### Example 3: Scheduled Monitoring
+### Example 3: Complete Pipeline Setup
+```bash
+# Full enterprise deployment with Vercel integration
+./scripts/rollout-deps.sh false acme-corp
+./scripts/setup-vercel.sh acme-corp next-app acme-corp next-production
+python3 monitor_adoption.py acme-corp
+```
+
+### Example 4: Scheduled Monitoring
 ```bash
 # Add to cron for regular monitoring
 0 9 * * * cd /path/to/ci-toolkit && python3 monitor_adoption.py acme-corp
