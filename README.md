@@ -119,10 +119,31 @@ Real-time adoption tracking:
 - 🔍 **Multi-Account Support**: Works with both organizations and personal accounts
 - ⚡ **Multi-Language**: Supports JavaScript and TypeScript repositories
 
-**Usage**:
+**Setup & Usage**:
 ```bash
-export GITHUB_TOKEN=your_token_here
-python3 monitor_adoption.py YOUR_ORG_NAME
+# 1. Install Python dependencies
+pip3 install requests
+
+# 2. Export GitHub token with repo scope
+export GITHUB_TOKEN=<your_github_token>
+
+# 3. Generate adoption dashboard
+python3 monitor_adoption.py my-org
+
+# 4. View dashboard locally
+open adoption_dashboard.html
+```
+
+**GitHub Pages Hosting** (Optional):
+```bash
+# Host dashboard as a live website
+git checkout -b gh-pages
+git add adoption_dashboard.html
+git commit -m "docs: add adoption dashboard"
+git push origin gh-pages
+
+# Enable GitHub Pages in repo settings → Pages → Source: Deploy from branch (gh-pages)
+# Dashboard URL: https://your-org.github.io/ci-toolkit/adoption_dashboard.html
 ```
 
 ## ⚙️ Configuration
@@ -255,7 +276,81 @@ python3 monitor_adoption.py acme-corp
 0 9 * * * cd /path/to/ci-toolkit && python3 monitor_adoption.py acme-corp
 ```
 
-## 🛠️ Troubleshooting
+## � Live Dashboard Setup
+
+### Complete Monitoring Workflow
+
+Set up a live, automatically-updating adoption dashboard:
+
+```bash
+# 1. Install dependencies
+pip3 install requests
+
+# 2. Configure GitHub token
+export GITHUB_TOKEN=<your_github_token>
+
+# 3. Generate initial dashboard
+python3 monitor_adoption.py your-org
+
+# 4. Set up GitHub Pages hosting
+git checkout -b gh-pages
+git add adoption_dashboard.html
+git commit -m "docs: add adoption dashboard"
+git push origin gh-pages
+
+# 5. Enable GitHub Pages in repository settings
+# Repository → Settings → Pages → Source: Deploy from branch (gh-pages)
+```
+
+### Automated Dashboard Updates
+
+Add to GitHub Actions for automatic dashboard updates:
+
+```yaml
+# .github/workflows/monitor.yml
+name: Update Adoption Dashboard
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly Monday 9 AM
+  workflow_dispatch:     # Manual trigger
+
+jobs:
+  update-dashboard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Install dependencies
+        run: pip install requests
+      - name: Generate dashboard
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 monitor_adoption.py ${{ github.repository_owner }}
+      - name: Commit dashboard
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add adoption_dashboard.html
+          git commit -m "docs: update adoption dashboard $(date)" || exit 0
+          git push
+```
+
+### Dashboard Features
+
+Your live dashboard will show:
+- ✅ **Real-time adoption rates** across all repositories
+- 📊 **Visual status indicators** (✓ adopted, ✗ pending)
+- 🕒 **Last updated timestamp** for freshness tracking
+- 🎯 **Repository-specific status** for targeted follow-up
+
+**Live Dashboard URL**: `https://your-org.github.io/ci-toolkit/adoption_dashboard.html`
+
+## �🛠️ Troubleshooting
 
 ### Common Issues
 
