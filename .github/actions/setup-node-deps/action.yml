@@ -1,0 +1,31 @@
+name: 'Setup Node Dependencies'
+description: 'Cache and install Node.js dependencies with npm or Yarn'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.npm
+          ~/.yarn/cache
+          node_modules
+        key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json','**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-deps-
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        if [ -f package-lock.json ]; then
+          echo "📦 Installing with npm ci (package-lock.json found)..."
+          npm ci
+        elif [ -f yarn.lock ]; then
+          echo "🧶 Installing with yarn --frozen-lockfile (yarn.lock found)..."
+          yarn install --frozen-lockfile
+        else
+          echo "⚠️  No lock file found, using npm install..."
+          npm install
+        fi
+        echo "✅ Dependencies installed successfully"
